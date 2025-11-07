@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kart Bilgisi Ayıklayıcı</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-box h3 {
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .stat-box p {
+            opacity: 0.9;
+        }
+        
+        .output-area {
+            background: #f8f9ff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .output-line {
+            padding: 5px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .output-line:hover {
+            background: #fff;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Kart Bilgisi Ayıklayıcı</h1>
+            <p>TXT dosyanızı yükleyin, kart bilgilerini otomatik ayıklayın</p>
+        </div>
+        
+        <div class="content">
+            <div style="margin-bottom: 20px; padding: 20px; background: #f8f9ff; border-radius: 10px;">
+                <h3 style="margin-bottom: 15px; color: #667eea;">⚙️ Format Ayarları</h3>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="format" value="pipe" checked>
+                        <span>Seçenek 1: <code style="background: white; padding: 2px 8px; border-radius: 4px;">4524804056288404|08|2020|2025</code></span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="radio" name="format" value="slash">
+                        <span>Seçenek 2: <code style="background: white; padding: 2px 8px; border-radius: 4px;">4524804056288404/08/2020/2025</code></span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <h3>Dosya Seçin veya Sürükleyip Bırakın</h3>
+                <p style="margin-top: 10px; color: #666;">TXT formatında kart bilgileri içeren dosya</p>
+                <input type="file" id="fileInput" accept=".txt">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">Dosya Seç</button>
+            </div>
+            
+            <div id="results" class="results hidden">
+                <div class="stats">
+                    <div class="stat-box">
+                        <h3 id="cardCount">0</h3>
+                        <p>Bulunan Kart</p>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 15px;">📋 Ayıklanan Kartlar:</h3>
+                <div class="output-area" id="outputArea"></div>
+                
+                <div class="action-buttons">
+                    <button class="btn" onclick="downloadResults()">💾 TXT İndir</button>
+                    <button class="btn" onclick="copyToClipboard()">📋 Panoya Kopyala</button>
+                    <button class="btn" onclick="resetApp()">🔄 Yeni Dosya</button>
+                </div>
+                
+                <div id="alertBox"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let extractedCards = [];
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const resultsDiv = document.getElementById('results');
+        const outputArea = document.getElementById('outputArea');
+        const cardCount = document.getElementById('cardCount');
+        const alertBox = document.getElementById('alertBox');
+        
+        // Drag & Drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.txt')) {
+                processFile(file);
+            } else {
+                showAlert('Lütfen sadece .txt dosyası yükleyin!', 'error');
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        });
+        
+        function processFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const content = e.target.result;
+                extractCards(content);
+            };
+            reader.readAsText(file);
+        }
+        
+        function extractCards(content) {
+            extractedCards = [];
+            
+            // Seçili formatı al
+            const formatType = document.querySelector('input[name="format"]:checked').value;
+            const separator = formatType === 'pipe' ? '|' : '/';
+            
+            // Regex patterns
+            const cardPattern = /\b[\d\s\-]{14,19}\b/g;
+            const datePattern = /\b(0[1-9]|1[0-2])[\s\-\/]?(\d{2}|\d{4})\b/g;
+            const cvvPattern = /\b\d{3,4}\b/g;
+            
+            // Eşleşmeleri bul
+            const cards = content.match(cardPattern) || [];
+            const dates = content.match(datePattern) || [];
+            const cvvs = content.match(cvvPattern) || [];
+            
+            // Her kart için işle
+            for (let i = 0; i < cards.length; i++) {
+                // Kart numarasını temizle
+                const cleanCard = cards[i].replace(/[^0-9]/g, '');
+                
+                // 14-16 hane kontrolü
+                if (cleanCard.length < 14 || cleanCard.length > 16) continue;
+                
+                // Tarih kontrolü
+                if (i >= dates.length) continue;
+                const dateMatch = dates[i].match(/(0[1-9]|1[0-2])[\s\-\/]?(\d{2}|\d{4})/);
+                if (!dateMatch) continue;
+                
+                let month = dateMatch[1];
+                let year = dateMatch[2];
+                
+                // Yıl 2 haneliyse 4 haneye çevir
+                if (year.length === 2) {
+                    year = '20' + year;
+                }
+                
+                // CVV kontrolü
+                if (i >= cvvs.length) continue;
+                const cvv = cvvs[i];
+                
+                // Format: KARTNO|AY|YIL|CVV veya KARTNO/AY/YIL/CVV
+                const formatted = `${cleanCard}${separator}${month}${separator}${year}${separator}${cvv}`;
+                extractedCards.push(formatted);
+            }
+            
+            displayResults();
+        }
+        
+        function displayResults() {
+            if (extractedCards.length === 0) {
+                showAlert('Hiç kart bilgisi bulunamadı!', 'error');
+                return;
+            }
+            
+            // Sonuçları göster
+            resultsDiv.classList.remove('hidden');
+            cardCount.textContent = extractedCards.length;
+            
+            outputArea.innerHTML = '';
+            extractedCards.forEach((card) => {
+                const div = document.createElement('div');
+                div.className = 'output-line';
+                div.textContent = card;
+                outputArea.appendChild(div);
+            });
+            
+            showAlert(`✓ ${extractedCards.length} adet kart başarıyla ayıklandı!`, 'success');
+        }
+        
+        function downloadResults() {
+            if (extractedCards.length === 0) {
+                showAlert('İndirilecek veri yok!', 'error');
+                return;
+            }
+            
+            try {
+                const text = extractedCards.join('\n');
+                const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ayiklanan_kartlar.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showAlert('✓ Dosya başarıyla indirildi!', 'success');
+            } catch (error) {
+                showAlert('İndirme hatası: ' + error.message, 'error');
+            }
+        }
+        
+        function copyToClipboard() {
+            const text = extractedCards.join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                showAlert('Panoya kopyalandı!', 'success');
+            }).catch(() => {
+                showAlert('Kopyalama başarısız!', 'error');
+            });
+        }
+        
+        function resetApp() {
+            extractedCards = [];
+            resultsDiv.classList.add('hidden');
+            fileInput.value = '';
+            alertBox.innerHTML = '';
+        }
+        
+        function showAlert(message, type) {
+            alertBox.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertBox.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
